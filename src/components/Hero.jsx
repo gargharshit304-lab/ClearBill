@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { AlertCircle, CheckCircle2, FileText, Shield, Upload } from 'lucide-react'
+import { CheckCircle2, FileText, Shield, Upload } from 'lucide-react'
 import { useState } from 'react'
 
 function formatBytes(bytes) {
@@ -206,69 +206,154 @@ export default function Hero({
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="hidden lg:block space-y-6"
+            className="hidden lg:block relative w-full h-[600px]"
           >
-            <motion.div
-              whileHover={{ scale: 1.02, shadow: 'lg' }}
-              className="glass rounded-2xl p-8 space-y-6"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-gray-900">Analysis Results</h3>
-                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity }}>
-                    <AlertCircle size={20} className="text-yellow-500" />
-                  </motion.div>
-                </div>
-
-                <div className="bg-gradient-soft rounded-xl p-4 space-y-3">
-                  <p className="text-sm text-gray-600">Overall Risk Score</p>
-                  <div className="flex items-center gap-4">
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="text-4xl font-bold gradient-text"
-                    >
-                      7.2
-                    </motion.div>
-                    <div className="flex-1">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-gradient-primary h-2 rounded-full" style={{ width: '72%' }} />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">High Risk</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-sm font-semibold text-gray-900">Potential Issues Found</p>
-                  {['Duplicate charge detected', 'Inflated medication cost', 'Facility fee mismatch'].map(
-                    (flag, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100"
-                      >
-                        <div className="w-2 h-2 bg-red-500 rounded-full" />
-                        <p className="text-sm text-gray-700">{flag}</p>
-                      </motion.div>
-                    ),
-                  )}
-                </div>
-              </div>
-            </motion.div>
-
+            {/* Background Gradient Orbs */}
             <motion.div
               animate={{ float: [0, -20, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -top-8 -right-8 w-32 h-32 bg-blue-100 rounded-full opacity-20 blur-3xl"
+              className="absolute -top-8 -right-8 w-32 h-32 bg-blue-100 rounded-full opacity-20 blur-3xl pointer-events-none"
             />
             <motion.div
               animate={{ float: [0, 20, 0] }}
               transition={{ duration: 5, repeat: Infinity }}
-              className="absolute bottom-0 right-1/3 w-40 h-40 bg-cyan-100 rounded-full opacity-20 blur-3xl"
+              className="absolute bottom-0 right-1/3 w-40 h-40 bg-cyan-100 rounded-full opacity-20 blur-3xl pointer-events-none"
             />
+
+            {/* Floating Document Previews */}
+            <div className="relative h-full">
+              {/* Bill Document Preview */}
+              <motion.div
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute top-8 left-0 w-48 h-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden"
+              >
+                <div className="bg-gradient-to-br from-sky-50 to-blue-50 h-full p-4 space-y-3">
+                  <div className="h-3 w-16 bg-slate-300 rounded opacity-60" />
+                  <div className="space-y-2">
+                    <div className="h-2 bg-slate-200 rounded w-full opacity-40" />
+                    <div className="h-2 bg-slate-200 rounded w-5/6 opacity-40" />
+                    <div className="h-2 bg-slate-200 rounded w-4/5 opacity-40" />
+                  </div>
+
+                  {/* Animated Scan Line */}
+                  <motion.div
+                    animate={{ y: [0, 120, 0] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-sky-400 to-transparent opacity-70"
+                  />
+
+                  {/* Highlighted Terms */}
+                  <div className="space-y-1 pt-2">
+                    {['Facility Fee', 'Charge Item'].map((term, i) => (
+                      <motion.div
+                        key={term}
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.3 }}
+                        className="text-xs px-2 py-1 bg-yellow-200/50 rounded text-yellow-900 inline-block"
+                      >
+                        {term}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Label Badge */}
+                <motion.div
+                  animate={{ y: [0, 3, 0] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-600 text-white text-xs font-semibold rounded-full shadow-md"
+                >
+                  Hospital Bill
+                </motion.div>
+              </motion.div>
+
+              {/* Report Document Preview */}
+              <motion.div
+                animate={{ y: [0, 12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+                className="absolute top-32 right-0 w-48 h-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden"
+              >
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 h-full p-4 space-y-3">
+                  <div className="h-3 w-20 bg-slate-300 rounded opacity-60" />
+                  <div className="space-y-2">
+                    <div className="h-2 bg-slate-200 rounded w-full opacity-40" />
+                    <div className="h-2 bg-slate-200 rounded w-5/6 opacity-40" />
+                    <div className="h-2 bg-slate-200 rounded w-4/5 opacity-40" />
+                  </div>
+
+                  {/* Animated Scan Line */}
+                  <motion.div
+                    animate={{ y: [0, 120, 0] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-70"
+                  />
+
+                  {/* Highlighted Terms */}
+                  <div className="space-y-1 pt-2">
+                    {['Procedure', 'Medication'].map((term, i) => (
+                      <motion.div
+                        key={term}
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 2.5, repeat: Infinity, delay: 0.3 + i * 0.3 }}
+                        className="text-xs px-2 py-1 bg-green-200/50 rounded text-green-900 inline-block"
+                      >
+                        {term}
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Label Badge */}
+                <motion.div
+                  animate={{ y: [0, 3, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 0.2 }}
+                  className="absolute -top-3 right-1/2 translate-x-1/2 px-3 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-full shadow-md"
+                >
+                  Medical Report
+                </motion.div>
+              </motion.div>
+
+              {/* Floating AI Processing Labels */}
+              <motion.div
+                animate={{ opacity: [0, 1, 0], y: [0, -20, -40] }}
+                transition={{ duration: 3, repeat: Infinity, delay: 0 }}
+                className="absolute top-24 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-md text-xs font-medium text-slate-700 whitespace-nowrap pointer-events-none"
+              >
+                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse" />
+                Procedure Detected
+              </motion.div>
+
+              <motion.div
+                animate={{ opacity: [0, 1, 0], y: [0, -20, -40] }}
+                transition={{ duration: 3, repeat: Infinity, delay: 0.8 }}
+                className="absolute top-40 right-12 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-md text-xs font-medium text-slate-700 whitespace-nowrap pointer-events-none"
+              >
+                <span className="inline-block w-2 h-2 bg-orange-500 rounded-full mr-2 animate-pulse" />
+                Cross-check Complete
+              </motion.div>
+
+              <motion.div
+                animate={{ opacity: [0, 1, 0], y: [0, -20, -40] }}
+                transition={{ duration: 3, repeat: Infinity, delay: 1.6 }}
+                className="absolute bottom-16 left-1/4 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-md text-xs font-medium text-slate-700 whitespace-nowrap pointer-events-none"
+              >
+                <span className="inline-block w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse" />
+                Medical Summary Generated
+              </motion.div>
+
+              {/* Security Badge at Bottom */}
+              <motion.div
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-lg shadow-sm"
+              >
+                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                <span className="text-xs font-medium text-slate-700">
+                  Secure Session • Files Not Stored
+                </span>
+              </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       </div>
