@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+* {
+  @apply antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-gray-900 overflow-x-hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+/* Premium Typography */
+h1 {
+  @apply text-5xl md:text-6xl font-bold tracking-tight;
+}
+
+h2 {
+  @apply text-3xl md:text-4xl font-bold tracking-tight;
+}
+
+h3 {
+  @apply text-xl md:text-2xl font-semibold tracking-tight;
+}
+
+@layer components {
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  }
+
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0F7FFF 0%, #00D4FF 100%);
+  }
+
+  /* Premium button */
+  .btn-premium {
+    @apply px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply text-white;
+    background-image: linear-gradient(135deg, #0F7FFF 0%, #00D4FF 100%);
+    box-shadow: 0 10px 25px rgba(15, 127, 255, 0.3);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 20px rgba(15, 127, 255, 0.3);
+  }
+
+  .btn-secondary {
+    @apply bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50;
+  }
+
+  /* Hover glow effect */
+  .hover-glow {
+    @apply transition-all duration-300;
+    box-shadow: 0 0 20px rgba(15, 127, 255, 0.3);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-blue-400 rounded-full hover:bg-blue-500;
+}
