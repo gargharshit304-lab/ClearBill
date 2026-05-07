@@ -1,9 +1,32 @@
 import { motion } from 'framer-motion'
-import { FileText, Upload, Shield, AlertCircle, TrendingDown, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, FileText, Shield, Upload } from 'lucide-react'
 import { useState } from 'react'
 
-export default function Hero() {
+function formatBytes(bytes) {
+  if (!bytes) return '0 KB'
+  const units = ['B', 'KB', 'MB', 'GB']
+  let value = bytes
+  let unitIndex = 0
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024
+    unitIndex += 1
+  }
+
+  return `${value.toFixed(value >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
+}
+
+export default function Hero({
+  billFile,
+  reportFile,
+  onBillChange,
+  onReportChange,
+  onBillRemove,
+  onReportRemove,
+  onAnalyze,
+}) {
   const [draggedArea, setDraggedArea] = useState(null)
+  const hasUploads = Boolean(billFile || reportFile)
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -24,32 +47,95 @@ export default function Hero() {
     hover: { scale: 1.02, transition: { duration: 0.3 } },
   }
 
-  const UploadCard = ({ icon: Icon, title, description, type }) => (
-    <motion.div
+  const UploadCard = ({
+    icon: Icon,
+    title,
+    description,
+    type,
+    file,
+    onFileChange,
+    onRemove,
+  }) => (
+    <motion.label
       variants={uploadCardVariants}
       whileHover="hover"
       onDragEnter={() => setDraggedArea(type)}
       onDragLeave={() => setDraggedArea(null)}
-      className={`glass rounded-2xl p-8 cursor-pointer transition-all ${
-        draggedArea === type ? 'ring-2 ring-blue-500 bg-blue-50/50' : ''
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        event.preventDefault()
+        const droppedFile = event.dataTransfer.files?.[0]
+        if (droppedFile) {
+          onFileChange(droppedFile)
+        }
+        setDraggedArea(null)
+      }}
+      className={`group relative block cursor-pointer overflow-hidden rounded-2xl border p-8 transition-all ${
+        file
+          ? 'border-emerald-200 bg-emerald-50/70'
+          : draggedArea === type
+            ? 'border-cyan-400 bg-blue-50/50 ring-2 ring-cyan-300/60'
+            : 'glass'
       }`}
     >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,127,255,0.12),transparent_35%),radial-gradient(circle_at_bottom_left,rgba(0,212,255,0.10),transparent_38%)] opacity-80" />
       <motion.div
         animate={{ y: draggedArea === type ? -10 : 0 }}
-        className="flex flex-col items-center gap-4"
+        className="relative flex flex-col items-center gap-4"
       >
         <div className="p-4 bg-gradient-soft rounded-xl">
           <Icon size={32} className="text-blue-600" />
         </div>
         <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
         <p className="text-gray-600 text-center text-sm">{description}</p>
-        <div className="border-2 border-dashed border-blue-200 rounded-lg p-6 w-full text-center">
-          <Upload size={24} className="text-blue-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">Drag & drop or click to upload</p>
-          <p className="text-xs text-gray-400 mt-1">PDF or image files</p>
-        </div>
+
+        {!file ? (
+          <div className="border-2 border-dashed border-blue-200 rounded-lg p-6 w-full text-center bg-white/70">
+            <Upload size={24} className="text-blue-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">Drag & drop or click to upload</p>
+            <p className="text-xs text-gray-400 mt-1">PDF or image files</p>
+          </div>
+        ) : (
+          <div className="w-full rounded-xl border border-emerald-200 bg-white/90 p-4 text-left shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="rounded-xl bg-emerald-100 p-2 text-emerald-600">
+                  <CheckCircle2 size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-900">{file.name}</p>
+                  <p className="mt-1 text-xs text-emerald-700">{formatBytes(file.size)} • Ready for analysis</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="rounded-full bg-white p-1.5 text-gray-500 shadow-sm transition hover:text-gray-900"
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  onRemove()
+                }}
+                aria-label={`Remove ${title}`}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
+        <input
+          type="file"
+          accept=".pdf,.png,.jpg,.jpeg,.heic,.webp"
+          className="sr-only"
+          onChange={(event) => {
+            const selectedFile = event.target.files?.[0]
+            if (selectedFile) {
+              onFileChange(selectedFile)
+            }
+          }}
+        />
       </motion.div>
-    </motion.div>
+    </motion.label>
   )
 
   return (
@@ -62,7 +148,6 @@ export default function Hero() {
           viewport={{ once: true }}
           className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
         >
-          {/* Left Side - Content */}
           <div className="space-y-8">
             <motion.div variants={itemVariants}>
               <h1 className="text-5xl lg:text-6xl font-bold leading-tight">
@@ -72,55 +157,50 @@ export default function Hero() {
               </h1>
             </motion.div>
 
-            <motion.p
-              variants={itemVariants}
-              className="text-lg text-gray-600 leading-relaxed"
-            >
+            <motion.p variants={itemVariants} className="text-lg text-gray-600 leading-relaxed">
               AI-powered analysis for hospital bills and medical reports. Detect
               suspicious charges, simplify medical jargon, and understand your
               healthcare documents in seconds.
             </motion.p>
 
-            {/* Upload Cards */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-            >
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <UploadCard
                 icon={FileText}
                 title="Hospital Bill"
                 description="Upload your itemized bill"
                 type="bill"
+                file={billFile}
+                onFileChange={onBillChange}
+                onRemove={onBillRemove}
               />
               <UploadCard
                 icon={FileText}
                 title="Medical Report"
                 description="Upload any medical document"
                 type="report"
+                file={reportFile}
+                onFileChange={onReportChange}
+                onRemove={onReportRemove}
               />
             </motion.div>
 
-            {/* Privacy Badge */}
-            <motion.div
-              variants={itemVariants}
-              className="flex items-center gap-3 text-sm text-gray-600"
-            >
+            <motion.div variants={itemVariants} className="flex items-center gap-3 text-sm text-gray-600">
               <Shield size={18} className="text-blue-600" />
               <span>No signup required • Files are not permanently stored</span>
             </motion.div>
 
-            {/* CTA Button */}
             <motion.button
               variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn-primary w-full sm:w-auto text-lg py-4 px-10"
+              whileHover={hasUploads ? { scale: 1.05 } : undefined}
+              whileTap={hasUploads ? { scale: 0.95 } : undefined}
+              onClick={onAnalyze}
+              disabled={!hasUploads}
+              className={`btn-primary w-full sm:w-auto text-lg py-4 px-10 ${!hasUploads ? 'cursor-not-allowed opacity-60' : ''}`}
             >
               Analyze Documents →
             </motion.button>
           </div>
 
-          {/* Right Side - AI Preview Card */}
           <motion.div
             initial={{ opacity: 0, x: 100 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -128,7 +208,6 @@ export default function Hero() {
             viewport={{ once: true }}
             className="hidden lg:block space-y-6"
           >
-            {/* Main Preview Card */}
             <motion.div
               whileHover={{ scale: 1.02, shadow: 'lg' }}
               className="glass rounded-2xl p-8 space-y-6"
@@ -136,15 +215,11 @@ export default function Hero() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900">Analysis Results</h3>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity }}>
                     <AlertCircle size={20} className="text-yellow-500" />
                   </motion.div>
                 </div>
 
-                {/* Risk Score */}
                 <div className="bg-gradient-soft rounded-xl p-4 space-y-3">
                   <p className="text-sm text-gray-600">Overall Risk Score</p>
                   <div className="flex items-center gap-4">
@@ -157,40 +232,33 @@ export default function Hero() {
                     </motion.div>
                     <div className="flex-1">
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-primary h-2 rounded-full"
-                          style={{ width: '72%' }}
-                        ></div>
+                        <div className="bg-gradient-primary h-2 rounded-full" style={{ width: '72%' }} />
                       </div>
                       <p className="text-xs text-gray-500 mt-1">High Risk</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Red Flags */}
                 <div className="space-y-3">
                   <p className="text-sm font-semibold text-gray-900">Potential Issues Found</p>
-                  {[
-                    'Duplicate charge detected',
-                    'Inflated medication cost',
-                    'Facility fee mismatch',
-                  ].map((flag, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100"
-                    >
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <p className="text-sm text-gray-700">{flag}</p>
-                    </motion.div>
-                  ))}
+                  {['Duplicate charge detected', 'Inflated medication cost', 'Facility fee mismatch'].map(
+                    (flag, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100"
+                      >
+                        <div className="w-2 h-2 bg-red-500 rounded-full" />
+                        <p className="text-sm text-gray-700">{flag}</p>
+                      </motion.div>
+                    ),
+                  )}
                 </div>
               </div>
             </motion.div>
 
-            {/* Floating Elements */}
             <motion.div
               animate={{ float: [0, -20, 0] }}
               transition={{ duration: 4, repeat: Infinity }}

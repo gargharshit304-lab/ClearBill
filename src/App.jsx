@@ -1,19 +1,22 @@
-import Navbar from './components/Navbar'
-import Hero from './components/Hero'
-import HowItWorks from './components/HowItWorks'
-import Features from './components/Features'
-import Footer from './components/Footer'
+import { AnimatePresence } from 'framer-motion'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import LandingPage, { LandingPageWrapper } from './pages/LandingPage'
+import Rights from './pages/Rights'
+import AnalysisFlowPage from './pages/AnalysisFlowPage'
 import './index.css'
 
 function App() {
+  const location = useLocation()
+
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
-      <Hero />
-      <HowItWorks />
-      <Features />
-      <Footer />
-    </div>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<LandingPageWrapper />} />
+        <Route path="/rights" element={<Rights />} />
+        <Route path="/analysis" element={<AnalysisFlowPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
   )
 }
 
