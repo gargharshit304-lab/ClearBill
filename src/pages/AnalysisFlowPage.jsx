@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { formatCurrency, formatCurrencyRange } from '../utils/formatCurrency'
 
 const processingStages = [
   { label: 'Uploading securely', phase: 'upload' },
@@ -25,6 +26,11 @@ const processingStages = [
   { label: 'Finalizing AI insights', phase: 'finalize' },
 ]
 
+const MOCK_CURRENCY = {
+  currency: 'INR',
+  currencySymbol: '₹',
+}
+
 function getFileName(file, fallback) {
   return file?.name ?? fallback
 }
@@ -32,7 +38,7 @@ function getFileName(file, fallback) {
 // DOCUMENT SCANNING ANIMATION COMPONENT
 function DocumentScannerAnimation({ phase, progress }) {
   return (
-    <div className="relative flex h-80 w-full max-w-sm items-center justify-center">
+    <div className="relative flex h-80 w-full max-w-sm items-center justify-center" aria-label={`Document scan ${progress}% complete`}>
       {/* Stacked documents */}
       <div className="absolute h-48 w-full">
         {/* Bill Document */}
@@ -89,7 +95,7 @@ function DocumentScannerAnimation({ phase, progress }) {
       {/* Floating extracted text particles */}
       {phase === 'extraction' && (
         <div className="absolute inset-0 flex items-center justify-center">
-          {['$220', 'Room', 'Med', 'Proc', 'Fee'].map((text, i) => (
+          {['220', 'Room', 'Med', 'Proc', 'Fee'].map((text, i) => (
             <motion.div
               key={text}
               className="absolute text-xs font-mono text-sky-500 opacity-60"
@@ -107,7 +113,7 @@ function DocumentScannerAnimation({ phase, progress }) {
                 top: '60%',
               }}
             >
-              {text}
+              {text === '220' ? `${MOCK_CURRENCY.currencySymbol}${text}` : text}
             </motion.div>
           ))}
         </div>
@@ -397,11 +403,12 @@ function ReportSummaryCard({ profile }) {
 
 // BILLING CONCERNS CARD
 function BillingConcernsCard({ profile }) {
+  const currencySymbol = profile?.currencySymbol || MOCK_CURRENCY.currencySymbol
   const rows = [
-    { id: 1, item: 'Room Charge (2026-03-12)', amount: '$220', expected: '$110 - $180', status: '⚠ Possible Duplicate', severity: 'high', confidence: 0.92, related: ['Room change log missing'], suggestion: 'Ask for an itemized timeline showing admission/discharge room types.' },
-    { id: 2, item: 'Antibiotic (Ceftriaxone)', amount: '$430', expected: '$30 - $120', status: '⚠ Unusually Expensive', severity: 'high', confidence: 0.78, related: ['Dosage mismatch'], suggestion: 'Request pharmacy invoice and dosage confirmation.' },
-    { id: 3, item: 'MRI Scan', amount: '$850', expected: '$600 - $1,200', status: '✓ Appears Normal', severity: 'low', confidence: 0.95, related: ['Matched to report'], suggestion: 'No action needed.' },
-    { id: 4, item: 'Facility Fee', amount: '$150', expected: '$100 - $150', status: '⚠ Possible Duplicate', severity: 'medium', confidence: 0.64, related: ['Charged on both admission & discharge'], suggestion: 'Ask which event triggered each fee.' },
+    { id: 1, item: 'Room Charge (2026-03-12)', amount: 220, expected: { min: 110, max: 180 }, status: '⚠ Possible Duplicate', severity: 'high', confidence: 0.92, related: ['Room change log missing'], suggestion: 'Ask for an itemized timeline showing admission/discharge room types.' },
+    { id: 2, item: 'Antibiotic (Ceftriaxone)', amount: 430, expected: { min: 30, max: 120 }, status: '⚠ Unusually Expensive', severity: 'high', confidence: 0.78, related: ['Dosage mismatch'], suggestion: 'Request pharmacy invoice and dosage confirmation.' },
+    { id: 3, item: 'MRI Scan', amount: 850, expected: { min: 600, max: 1200 }, status: '✓ Appears Normal', severity: 'low', confidence: 0.95, related: ['Matched to report'], suggestion: 'No action needed.' },
+    { id: 4, item: 'Facility Fee', amount: 150, expected: { min: 100, max: 150 }, status: '⚠ Possible Duplicate', severity: 'medium', confidence: 0.64, related: ['Charged on both admission & discharge'], suggestion: 'Ask which event triggered each fee.' },
   ]
 
   const [expanded, setExpanded] = useState(null)
@@ -435,8 +442,8 @@ function BillingConcernsCard({ profile }) {
                   <div className="font-medium text-slate-900">{r.item}</div>
                   <div className="mt-1 text-xs text-slate-500">Related: {r.related.join(', ')}</div>
                 </td>
-                <td className="px-4 py-3 text-right font-semibold text-slate-900">{r.amount}</td>
-                <td className="px-4 py-3 text-right text-xs text-slate-600">{r.expected}</td>
+                <td className="px-4 py-3 text-right font-semibold text-slate-900">{formatCurrency(r.amount, currencySymbol)}</td>
+                <td className="px-4 py-3 text-right text-xs text-slate-600">{formatCurrencyRange(r.expected.min, r.expected.max, currencySymbol)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className={`inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs font-semibold ${r.severity === 'high' ? 'bg-red-50 text-red-600' : r.severity === 'medium' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>{r.status}</div>
                 </td>
@@ -477,7 +484,7 @@ function BillingConcernsCard({ profile }) {
 
       <div className="mt-4 rounded-2xl bg-slate-950 p-4 text-white">
         <p className="text-xs font-semibold text-slate-300">Estimated Recoverable</p>
-        <p className="mt-2 text-2xl font-semibold">$1,245+</p>
+        <p className="mt-2 text-2xl font-semibold">{formatCurrency(1245, currencySymbol)}+</p>
         <p className="text-xs text-slate-400">If flagged items are resolved</p>
       </div>
     </motion.div>
@@ -599,48 +606,106 @@ function QuestionsCard() {
 }
 
 // CONTINUE UPLOAD PROMPT (shown when only one document was provided)
-function ContinueUploadPrompt({ missingType, onUpload, onStart }) {
+function ContinueUploadPrompt({ missingType, onUpload }) {
   const [chosen, setChosen] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const isReportMissing = missingType === 'report'
+  const title = isReportMissing
+    ? 'Add Medical Report for Deeper Verification'
+    : 'Upload Hospital Bill for Pricing Analysis'
+  const subtitle = isReportMissing
+    ? 'Cross-check billed procedures against treatment records and detect mismatches.'
+    : 'Detect duplicate charges, inflated medicine costs, and suspicious billing patterns.'
+  const benefits = isReportMissing
+    ? ['Verify procedures', 'Detect mismatches', 'Improve analysis confidence']
+    : ['Detect duplicate charges', 'Analyze medicine pricing', 'Estimate overcharges']
+  const cta = isReportMissing ? 'Run Cross-Verification' : 'Analyze Bill & Compare'
+  const inputId = `continue-upload-${missingType}`
+
+  function handleSelectedFile(file) {
+    if (file) setChosen(file)
+    setIsDragging(false)
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[24px] border border-white/60 bg-gradient-to-br from-cyan-50/50 to-white/60 p-6 shadow-lg backdrop-blur-md"
+      className="overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5 shadow-[0_16px_60px_rgba(14,116,144,0.10)]"
     >
-      <div className="flex items-start gap-4">
-        <div className="h-12 w-12 flex-shrink-0 rounded-xl bg-gradient-to-br from-sky-400 to-emerald-300 p-3 text-white">
-          <Sparkles size={20} />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-slate-900">Want a deeper verification?</p>
-          <p className="mt-1 text-xs text-slate-600">Upload the {missingType === 'report' ? 'medical report' : 'hospital bill'} to enable cross-verification and deeper AI insights. Files are analyzed locally and not stored.</p>
+      <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
+        <div>
+          <div className="mb-4 flex items-start gap-3">
+            <div className="rounded-xl bg-white p-3 text-sky-600 shadow-sm">
+              {isReportMissing ? <Stethoscope size={20} /> : <FileText size={20} />}
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{subtitle}</p>
+            </div>
+          </div>
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="grid gap-2 sm:grid-cols-3">
+            {benefits.map((benefit) => (
+              <div key={benefit} className="flex items-center gap-2 rounded-lg border border-white bg-white/75 px-3 py-2 text-xs font-semibold text-slate-700">
+                <CheckCircle2 size={15} className="text-emerald-600" />
+                {benefit}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+            <Shield size={14} />
+            Secure session, no files stored
+          </div>
+        </div>
+        <div>
             <input
               type="file"
               accept=".pdf,image/*"
-              onChange={(e) => setChosen(e.target.files?.[0] ?? null)}
+              onChange={(event) => handleSelectedFile(event.target.files?.[0])}
               className="hidden"
-              id={`continue-upload-${missingType}`}
+              id={inputId}
             />
-            <label htmlFor={`continue-upload-${missingType}`} className="rounded-2xl cursor-pointer border px-4 py-2 text-sm font-semibold text-sky-700 bg-white/80">
-              {chosen ? chosen.name : 'Select File'}
+            <label
+              htmlFor={inputId}
+              onDragEnter={() => setIsDragging(true)}
+              onDragLeave={() => setIsDragging(false)}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault()
+                handleSelectedFile(event.dataTransfer.files?.[0])
+              }}
+              className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-5 text-center transition ${
+                isDragging
+                  ? 'border-sky-400 bg-sky-50'
+                  : 'border-sky-200 bg-white/80 hover:border-sky-300'
+              }`}
+            >
+              <FileText size={26} className="text-sky-600" />
+              <span className="mt-3 max-w-52 truncate text-sm font-semibold text-slate-900">
+                {chosen ? chosen.name : 'Drag and drop or browse'}
+              </span>
+              <span className="mt-1 text-xs text-slate-500">PDF or image document</span>
             </label>
             <button
               onClick={() => {
                 if (chosen) onUpload(chosen)
-                onStart && onStart(chosen)
               }}
-              className="ml-auto rounded-2xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white"
+              disabled={!chosen}
+              className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
+                chosen
+                  ? 'bg-sky-600 text-white hover:bg-sky-700'
+                  : 'cursor-not-allowed bg-slate-200 text-slate-500'
+              }`}
             >
-              {missingType === 'report' ? 'Run Cross-Verification' : 'Analyze Bill & Compare'}
+              {cta}
+              <ArrowRight size={16} />
             </button>
           </div>
 
-          <p className="mt-3 text-xs text-slate-500">Privacy: Session-based • No files stored</p>
+          <p className="mt-3 text-xs text-slate-500">Privacy: session-based, no files stored</p>
         </div>
-      </div>
     </motion.div>
   )
 }
@@ -678,13 +743,13 @@ function ReportSummaryTab() {
 }
 
 // Compact Billing Issues Tab
-function BillingIssuesTab() {
+function BillingIssuesTab({ currencySymbol = '$', estimatedOvercharge = 1245 }) {
   const [expanded, setExpanded] = useState(null)
   const rows = [
-    { id: 1, item: 'Room Charge', amount: '$220', expected: '$110-$180', status: '⚠ Duplicate?', severity: 'high', confidence: 0.92, suggestion: 'Ask for admission/discharge timeline.' },
-    { id: 2, item: 'Antibiotic (Ceftriaxone)', amount: '$430', expected: '$30-$120', status: '⚠ Expensive', severity: 'high', confidence: 0.78, suggestion: 'Request pharmacy invoice and dosage confirmation.' },
-    { id: 3, item: 'MRI Scan', amount: '$850', expected: '$600-$1,200', status: '✓ Normal', severity: 'low', confidence: 0.95, suggestion: 'Verified – no concerns.' },
-    { id: 4, item: 'Facility Fee', amount: '$150', expected: '$100-$150', status: '⚠ Duplicate?', severity: 'medium', confidence: 0.64, suggestion: 'Clarify which event(s) triggered fee.' },
+    { id: 1, item: 'Room Charge', amount: 220, expected: { min: 110, max: 180 }, status: '⚠ Duplicate?', severity: 'high', confidence: 0.92, suggestion: 'Ask for admission/discharge timeline.' },
+    { id: 2, item: 'Antibiotic (Ceftriaxone)', amount: 430, expected: { min: 30, max: 120 }, status: '⚠ Expensive', severity: 'high', confidence: 0.78, suggestion: 'Request pharmacy invoice and dosage confirmation.' },
+    { id: 3, item: 'MRI Scan', amount: 850, expected: { min: 600, max: 1200 }, status: '✓ Normal', severity: 'low', confidence: 0.95, suggestion: 'Verified – no concerns.' },
+    { id: 4, item: 'Facility Fee', amount: 150, expected: { min: 100, max: 150 }, status: '⚠ Duplicate?', severity: 'medium', confidence: 0.64, suggestion: 'Clarify which event(s) triggered fee.' },
   ]
   return (
     <div className="space-y-2">
@@ -693,7 +758,9 @@ function BillingIssuesTab() {
           <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between">
             <div className="flex-1">
               <p className="font-semibold text-slate-900 text-sm">{r.item}</p>
-              <p className="text-xs text-slate-600 mt-0.5">{r.amount} (expected: {r.expected})</p>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {formatCurrencyAmount(r.amount, currencySymbol)} (expected: {formatCurrencyRange(r.expected, currencySymbol)})
+              </p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
               <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${r.severity === 'high' ? 'bg-red-50 text-red-700' : r.severity === 'medium' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>{r.status}</span>
@@ -718,7 +785,7 @@ function BillingIssuesTab() {
       ))}
       <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
         <p className="text-xs font-semibold text-amber-900">Estimated Overcharge</p>
-        <p className="text-lg font-bold text-amber-900 mt-1">$1,245+</p>
+        <p className="text-lg font-bold text-amber-900 mt-1">{formatCurrencyAmount(estimatedOvercharge, currencySymbol)}+</p>
       </div>
     </div>
   )
@@ -787,9 +854,194 @@ function QuestionsTab() {
   )
 }
 
+function MedicalReportExplanation() {
+  const [open, setOpen] = useState('diagnosis')
+  const sections = [
+    {
+      id: 'diagnosis',
+      icon: <Stethoscope size={18} />,
+      title: 'Diagnosis Summary',
+      summary: 'Mild respiratory infection with dehydration symptoms.',
+      detail:
+        'The report suggests a manageable respiratory condition. The clinical notes do not point to an emergency pattern, but hydration and symptom tracking matter during recovery.',
+    },
+    {
+      id: 'treatment',
+      icon: <Heart size={18} />,
+      title: 'Treatment Summary',
+      summary: 'The patient was treated using IV fluids, antibiotics, and oxygen observation.',
+      detail:
+        'This is a typical supportive plan for infection with mild breathing discomfort or dehydration. The treatment appears focused on stabilization and preventing symptoms from worsening.',
+    },
+    {
+      id: 'observations',
+      icon: <CheckCircle2 size={18} />,
+      title: 'Important Observations',
+      summary: 'No major abnormalities detected in chest imaging.',
+      detail:
+        'Chest imaging and oxygen readings look reassuring in this mock review. Lab markers should still be checked against the final doctor note if symptoms continue.',
+    },
+    {
+      id: 'recovery',
+      icon: <Shield size={18} />,
+      title: 'Recovery Guidance',
+      summary: 'Rest, hydration, and follow-up after one week are recommended.',
+      detail:
+        'Continue prescribed medication, watch for fever or breathing changes, and schedule a follow-up visit in about 7 days unless the doctor advised a different timeline.',
+    },
+  ]
+
+  return (
+    <motion.section
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-white via-emerald-50/40 to-sky-50/60 p-5"
+    >
+      <div className="mb-4 flex items-start gap-3">
+        <div className="rounded-xl bg-emerald-100 p-3 text-emerald-700">
+          <Stethoscope size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
+            Medical explanation
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-950">What This Medical Report Means</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            A plain-language read of the report, written to help you understand the care plan without medical jargon.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-3">
+        {sections.map((section) => {
+          const expanded = open === section.id
+          return (
+            <div key={section.id} className="overflow-hidden rounded-xl border border-white bg-white/80">
+              <button
+                onClick={() => setOpen(expanded ? null : section.id)}
+                className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left hover:bg-slate-50"
+              >
+                <div className="flex gap-3">
+                  <div className="mt-0.5 text-sky-600">{section.icon}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-950">{section.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{section.summary}</p>
+                  </div>
+                </div>
+                <span className={`text-xs text-slate-400 transition ${expanded ? 'rotate-180' : ''}`}>v</span>
+              </button>
+              <AnimatePresence>
+                {expanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-emerald-50 bg-emerald-50/50 px-4 py-3 text-sm leading-6 text-slate-700"
+                  >
+                    {section.detail}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )
+        })}
+      </div>
+    </motion.section>
+  )
+}
+
+function OverviewSummary({ profile, billFile, reportFile }) {
+  const mode = billFile && reportFile ? 'both' : billFile ? 'bill' : 'report'
+  const summary = {
+    both: {
+      risk: 'Moderate',
+      confidence: '84% aligned',
+      conclusion: 'The documents mostly support each other, but a few charges should be reviewed before payment.',
+      meaning:
+        'Your next step is to focus on the mismatched or weakly supported items, then ask the hospital for an itemized explanation.',
+      next: 'Open Cross-Check for comparison details, then use Questions for follow-up.',
+    },
+    bill: {
+      risk: 'Moderate',
+      confidence: 'Billing confidence 78%',
+      conclusion: 'The bill contains enough pricing signals to justify a careful review.',
+      meaning:
+        'This is a useful first-pass billing analysis. A medical report will make it stronger by showing whether each billed service is documented in the treatment record.',
+      next: 'Add the medical report to run cross-verification.',
+    },
+    report: {
+      risk: 'Low',
+      confidence: 'Medical confidence 89%',
+      conclusion: 'The report reads as a mild condition with reassuring observations and standard recovery guidance.',
+      meaning:
+        'This explains the care plan in plain language. A hospital bill is needed before ClearBill can review pricing, duplicate charges, or overcharge estimates.',
+      next: 'Upload the hospital bill to analyze charges and compare them with the report.',
+    },
+  }
+  const current = summary[mode]
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="mb-4 flex items-start gap-3">
+        <div className="rounded-xl bg-sky-100 p-3 text-sky-700">
+          <Sparkles size={20} />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+            Analysis summary
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-950">{profile.title}</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{profile.subtitle}</p>
+        </div>
+      </div>
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs font-semibold text-slate-500">Risk Level</p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">{current.risk}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs font-semibold text-slate-500">Confidence</p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">{current.confidence}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="text-xs font-semibold text-slate-500">Recommended Next Step</p>
+          <p className="mt-1 text-sm font-semibold text-slate-950">{mode === 'both' ? 'Review mismatches' : 'Add missing document'}</p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Short conclusion</p>
+          <p className="mt-1 text-sm leading-6 text-slate-700">{current.conclusion}</p>
+        </div>
+        <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">What this means</p>
+          <p className="mt-1 text-sm leading-6 text-slate-700">{current.meaning}</p>
+        </div>
+        <div className="flex items-start gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm text-slate-700">
+          <ArrowRight size={16} className="mt-0.5 flex-shrink-0 text-sky-600" />
+          {current.next}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function ResultsScreen({ profile, billFile, reportFile, onReset, onContinueUpload }) {
   const [activeTab, setActiveTab] = useState('overview')
-  const confidenceData = { analysis: 91, medical: 89, billing: 78, crossVerif: 84 }
+  const currencySymbol = MOCK_CURRENCY.currencySymbol
+  const hasBothFiles = Boolean(billFile && reportFile)
+  const hasOnlyBill = Boolean(billFile && !reportFile)
+  const hasOnlyReport = Boolean(reportFile && !billFile)
+  const riskScore = hasOnlyReport ? 3.8 : 7.6
+  const estimatedOverchargeValue = hasOnlyReport ? 0 : 1245
+  const estimatedOvercharge = `${formatCurrencyAmount(estimatedOverchargeValue, currencySymbol)}${hasOnlyReport ? '' : '+'}`
+  const issuesFound = hasOnlyReport ? '2' : '12'
+  const actionSummary = hasBothFiles
+    ? 'Compare and dispute'
+    : hasOnlyBill
+      ? 'Review bill and add report'
+      : 'Understand report and add bill'
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
@@ -806,19 +1058,19 @@ function ResultsScreen({ profile, billFile, reportFile, onReset, onContinueUploa
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="p-3 bg-white rounded border border-slate-200">
               <p className="text-xs text-slate-600 font-semibold">Risk Score</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">7.6<span className="text-xs text-slate-600 font-normal">/10</span></p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{riskScore}<span className="text-xs text-slate-600 font-normal">/10</span></p>
             </div>
             <div className="p-3 bg-white rounded border border-slate-200">
               <p className="text-xs text-slate-600 font-semibold">Est. Overcharge</p>
-              <p className="text-2xl font-bold text-amber-700 mt-1">$1,245+</p>
+              <p className="text-2xl font-bold text-amber-700 mt-1">{estimatedOvercharge}</p>
             </div>
             <div className="p-3 bg-white rounded border border-slate-200">
               <p className="text-xs text-slate-600 font-semibold">Issues Found</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">12</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">{issuesFound}</p>
             </div>
             <div className="p-3 bg-white rounded border border-slate-200">
               <p className="text-xs text-slate-600 font-semibold">Action Summary</p>
-              <p className="text-sm font-semibold text-slate-900 mt-1">Review & follow up</p>
+              <p className="text-sm font-semibold text-slate-900 mt-1">{actionSummary}</p>
             </div>
           </div>
         </div>
@@ -844,44 +1096,50 @@ function ResultsScreen({ profile, billFile, reportFile, onReset, onContinueUploa
               {activeTab === 'overview' && (
                 <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
                   <div className="space-y-4">
-                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                      <p className="font-semibold text-slate-900">Analysis Summary</p>
-                      <p className="text-sm text-slate-700 mt-2">{profile.subtitle}</p>
-                    </div>
-                    {billFile && reportFile ? (
-                      <>
-                        <h2 className="font-semibold text-slate-900">Key Findings</h2>
-                        <ul className="space-y-2 text-sm text-slate-700">
-                          <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold mt-0.5">✓</span> Medical findings documented and explained</li>
-                          <li className="flex items-start gap-2"><span className="text-red-600 font-bold mt-0.5">!</span> 4 billing items flagged for review</li>
-                          <li className="flex items-start gap-2"><span className="text-yellow-600 font-bold mt-0.5">!</span> 1 procedure lacks clinical reference</li>
-                          <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold mt-0.5">✓</span> 84% overall document alignment</li>
-                        </ul>
-                      </>
-                    ) : billFile ? (
-                      <>
-                        <h2 className="font-semibold text-slate-900">Bill Analysis</h2>
-                        <p className="text-sm text-slate-700">Hospital bill analyzed for pricing anomalies and duplicate charges.</p>
-                        <p className="text-sm text-amber-700 font-semibold mt-2">Upload a medical report for deeper cross-verification insights.</p>
-                      </>
-                    ) : (
-                      <>
-                        <h2 className="font-semibold text-slate-900">Report Analysis</h2>
-                        <p className="text-sm text-slate-700">Medical report analyzed and explained in plain language.</p>
-                        <p className="text-sm text-amber-700 font-semibold mt-2">Upload a hospital bill to compare medical services with charges.</p>
-                      </>
+                    <OverviewSummary profile={profile} billFile={billFile} reportFile={reportFile} />
+                    {hasOnlyBill && (
+                      <ContinueUploadPrompt
+                        missingType="report"
+                        onUpload={(file) => onContinueUpload(file, 'report')}
+                      />
+                    )}
+                    {hasOnlyReport && (
+                      <ContinueUploadPrompt
+                        missingType="bill"
+                        onUpload={(file) => onContinueUpload(file, 'bill')}
+                      />
                     )}
                   </div>
                 </motion.div>
               )}
               {activeTab === 'bill' && billFile && (
                 <motion.div key="bill" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
-                  <BillingIssuesTab />
+                  <div className="space-y-5">
+                    <BillingIssuesTab
+                      currencySymbol={currencySymbol}
+                      estimatedOvercharge={estimatedOverchargeValue}
+                    />
+                    {hasOnlyBill && (
+                      <ContinueUploadPrompt
+                        missingType="report"
+                        onUpload={(file) => onContinueUpload(file, 'report')}
+                      />
+                    )}
+                  </div>
                 </motion.div>
               )}
               {activeTab === 'report' && reportFile && (
                 <motion.div key="report" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
-                  <ReportSummaryTab />
+                  <div className="space-y-5">
+                    <MedicalReportExplanation />
+                    <ReportSummaryTab />
+                    {hasOnlyReport && (
+                      <ContinueUploadPrompt
+                        missingType="bill"
+                        onUpload={(file) => onContinueUpload(file, 'bill')}
+                      />
+                    )}
+                  </div>
                 </motion.div>
               )}
               {activeTab === 'cross' && billFile && reportFile && (
@@ -905,13 +1163,13 @@ function ResultsScreen({ profile, billFile, reportFile, onReset, onContinueUploa
                 <div className="relative w-16 h-16 flex items-center justify-center">
                   <svg className="absolute" viewBox="0 0 100 100" style={{ width: 64, height: 64 }}>
                     <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" strokeWidth="6" />
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#dc2626" strokeWidth="6" strokeDasharray={`${(7.6 / 10) * 283} 283`} strokeLinecap="round" transform="rotate(-90 50 50)" />
+                    <circle cx="50" cy="50" r="45" fill="none" stroke={hasOnlyReport ? '#059669' : '#dc2626'} strokeWidth="6" strokeDasharray={`${(riskScore / 10) * 283} 283`} strokeLinecap="round" transform="rotate(-90 50 50)" />
                   </svg>
-                  <span className="font-bold text-slate-900">7.6</span>
+                  <span className="font-bold text-slate-900">{riskScore}</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">Moderate</p>
-                  <p className="text-xs text-slate-600">Review recommended</p>
+                  <p className="font-semibold text-slate-900">{hasOnlyReport ? 'Low' : 'Moderate'}</p>
+                  <p className="text-xs text-slate-600">{hasOnlyReport ? 'Follow-up advised' : 'Review recommended'}</p>
                 </div>
               </div>
             </div>
@@ -925,13 +1183,20 @@ function ResultsScreen({ profile, billFile, reportFile, onReset, onContinueUploa
                 </div>
                 <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: '91%' }} /></div>
               </div>
-              <div>
+              {billFile && <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-semibold text-slate-600">Billing</span>
                   <span className="text-xs font-bold text-slate-900">78%</span>
                 </div>
                 <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-amber-500" style={{ width: '78%' }} /></div>
-              </div>
+              </div>}
+              {reportFile && <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-slate-600">Medical</span>
+                  <span className="text-xs font-bold text-slate-900">89%</span>
+                </div>
+                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: '89%' }} /></div>
+              </div>}
               {billFile && reportFile && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
@@ -980,8 +1245,6 @@ export default function AnalysisFlowPage() {
   const navigate = useNavigate()
 
   const uploads = location.state?.uploads ?? {}
-  const billFile = uploads.billFile ?? null
-  const reportFile = uploads.reportFile ?? null
   // local editable copies so the UI can evolve without navigation
   const [localBillFile, setLocalBillFile] = useState(uploads.billFile ?? null)
   const [localReportFile, setLocalReportFile] = useState(uploads.reportFile ?? null)

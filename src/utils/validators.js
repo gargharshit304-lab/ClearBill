@@ -29,6 +29,14 @@ export function validateAnalysisResult(result) {
     errors.push('Invalid estimatedOvercharge: must be non-negative number')
   }
 
+  if (!result.currency || typeof result.currency !== 'string') {
+    errors.push('currency must be a string')
+  }
+
+  if (typeof result.currencySymbol !== 'string') {
+    errors.push('currencySymbol must be a string')
+  }
+
   if (!Array.isArray(result.billIssues)) {
     errors.push('billIssues must be an array')
   } else {
@@ -130,6 +138,14 @@ export function sanitizeAnalysisResult(result) {
   // Normalize numbers
   if (sanitized.riskScore !== undefined) {
     sanitized.riskScore = Math.round(sanitized.riskScore * 10) / 10
+  }
+
+  if (!sanitized.currency) {
+    sanitized.currency = 'UNKNOWN'
+  }
+
+  if (typeof sanitized.currencySymbol !== 'string') {
+    sanitized.currencySymbol = ''
   }
 
   // Ensure confidence scores are capped at 100

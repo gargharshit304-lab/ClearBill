@@ -21,6 +21,7 @@ function delay(ms = API_CONFIG.MOCK_DELAY_MS) {
  * Analyze hospital bill
  * Currently: Returns mock analysis
  * Future: Sends to FastAPI + Claude for real processing
+ * Backend will detect billing currency after OCR and preserve it in all amount fields.
  *
  * @param {File} billFile - Hospital bill file
  * @returns {Promise<object>} Analysis result
@@ -53,6 +54,7 @@ export async function analyzeBill(billFile) {
   //   file: billFile,
   //   filename: billFile.name,
   //   model: 'openrouter/auto'
+  //   // Response includes currency and currencySymbol from OCR currency detection.
   // })
   // return validateAndSanitize(response.data)
 

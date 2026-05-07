@@ -7,17 +7,18 @@ import { motion } from 'framer-motion'
 import { useState } from 'react'
 import ConfidenceBar from './ConfidenceBar'
 import ExpandableRow from './ExpandableRow'
+import { formatCurrency, formatCurrencyRange } from '../../utils/formatCurrency'
 
 /**
  * @typedef {object} BillingIssue
  * @property {number} id - Unique identifier
- * @property {string} item - Item name/description
- * @property {string} amount - Billed amount
- * @property {string} expected - Expected range
+ * @property {string} title - Item name/description
+ * @property {number} amount - Billed amount
+ * @property {object} expectedRange - Expected range {min, max}
  * @property {string} status - Status text (e.g., "⚠ Duplicate?")
  * @property {string} severity - 'high' | 'medium' | 'low'
  * @property {number} confidence - Confidence (0-1)
- * @property {string} suggestion - Recommended action
+ * @property {string} explanation - Recommended action
  */
 
 /**
@@ -25,9 +26,14 @@ import ExpandableRow from './ExpandableRow'
  * @param {object} props
  * @property {BillingIssue[]} [props.issues] - Billing issues to display
  * @property {number} [props.estimatedOvercharge] - Total estimated overcharge
+ * @property {string} [props.currencySymbol] - Currency symbol to display
  * @returns {JSX.Element}
  */
-export function BillingIssuesTab({ issues = [], estimatedOvercharge = 1245 }) {
+export function BillingIssuesTab({
+  issues = [],
+  estimatedOvercharge = 1245,
+  currencySymbol = '₹',
+}) {
   const [expanded, setExpanded] = useState(null)
 
   // Default issues if not provided
@@ -36,43 +42,43 @@ export function BillingIssuesTab({ issues = [], estimatedOvercharge = 1245 }) {
     : [
         {
           id: 1,
-          item: 'Room Charge',
-          amount: '$220',
-          expected: '$110-$180',
+          title: 'Room Charge',
+          amount: 220,
+          expectedRange: { min: 110, max: 180 },
           status: '⚠ Duplicate?',
           severity: 'high',
           confidence: 0.92,
-          suggestion: 'Ask for admission/discharge timeline.',
+          explanation: 'Ask for admission/discharge timeline.',
         },
         {
           id: 2,
-          item: 'Antibiotic (Ceftriaxone)',
-          amount: '$430',
-          expected: '$30-$120',
+          title: 'Antibiotic (Ceftriaxone)',
+          amount: 430,
+          expectedRange: { min: 30, max: 120 },
           status: '⚠ Expensive',
           severity: 'high',
           confidence: 0.78,
-          suggestion: 'Request pharmacy invoice and dosage confirmation.',
+          explanation: 'Request pharmacy invoice and dosage confirmation.',
         },
         {
           id: 3,
-          item: 'MRI Scan',
-          amount: '$850',
-          expected: '$600-$1,200',
+          title: 'MRI Scan',
+          amount: 850,
+          expectedRange: { min: 600, max: 1200 },
           status: '✓ Normal',
           severity: 'low',
           confidence: 0.95,
-          suggestion: 'Verified – no concerns.',
+          explanation: 'Verified – no concerns.',
         },
         {
           id: 4,
-          item: 'Facility Fee',
-          amount: '$150',
-          expected: '$100-$150',
+          title: 'Facility Fee',
+          amount: 150,
+          expectedRange: { min: 100, max: 150 },
           status: '⚠ Duplicate?',
           severity: 'medium',
           confidence: 0.64,
-          suggestion: 'Clarify which event(s) triggered fee.',
+          explanation: 'Clarify which event(s) triggered fee.',
         },
       ]
 
@@ -93,8 +99,8 @@ export function BillingIssuesTab({ issues = [], estimatedOvercharge = 1245 }) {
         <ExpandableRow
           key={issue.id}
           id={`issue-${issue.id}`}
-          title={issue.item}
-          subtitle={`${issue.amount} (expected: ${issue.expected})`}
+          title={issue.title}
+          subtitle={`${formatCurrency(issue.amount, currencySymbol)} (expected: ${formatCurrencyRange(issue.expectedRange?.min, issue.expectedRange?.max, currencySymbol)})`}
           rightContent={
             <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${getSeverityColor(issue.severity)}`}>
               {issue.status}
@@ -103,7 +109,7 @@ export function BillingIssuesTab({ issues = [], estimatedOvercharge = 1245 }) {
           content={
             <div className="space-y-3">
               <div>
-                <p className="text-xs text-slate-600 mb-2">{issue.suggestion}</p>
+                <p className="text-xs text-slate-600 mb-2">{issue.explanation}</p>
               </div>
               <div>
                 <ConfidenceBar value={issue.confidence * 100} label="Confidence" size="sm" />
@@ -125,7 +131,9 @@ export function BillingIssuesTab({ issues = [], estimatedOvercharge = 1245 }) {
         className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-lg"
       >
         <p className="text-xs font-semibold text-amber-900">Estimated Overcharge</p>
-        <p className="text-lg font-bold text-amber-900 mt-1">${estimatedOvercharge}+</p>
+        <p className="text-lg font-bold text-amber-900 mt-1">
+          {formatCurrency(estimatedOvercharge, currencySymbol)}+
+        </p>
       </motion.div>
     </div>
   )

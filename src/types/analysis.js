@@ -51,9 +51,11 @@
  * @property {"bill" | "report" | "cross_verification"} analysisType - Type of analysis
  * @property {string} title - Analysis title
  * @property {string} subtitle - Analysis subtitle
+ * @property {string} currency - Detected billing currency code (e.g., INR, USD, UNKNOWN)
+ * @property {string} currencySymbol - Display symbol/code for detected billing currency
  * @property {string} summary - Executive summary
  * @property {number} riskScore - Risk score (0-10)
- * @property {number} estimatedOvercharge - Estimated overcharge amount ($)
+ * @property {number} estimatedOvercharge - Estimated overcharge amount in detected bill currency
  * @property {number} totalIssues - Total issues found
  * @property {AnalysisBillIssue[]} billIssues - Flagged billing issues
  * @property {AnalysisReportSummary} reportSummary - Medical report summary

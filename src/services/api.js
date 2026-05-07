@@ -6,6 +6,7 @@
  * - FastAPI server
  * - OpenRouter API (Claude Sonnet)
  * - Real analysis processing
+ * - OCR text extraction followed by currency detection/preservation
  *
  * Currently uses mock data with simulated delays
  */
@@ -40,6 +41,13 @@ export const API_CONFIG = {
   SIMULATE_DELAY: true,
   MOCK_DELAY_MS: 5500, // Simulate 5.5 second analysis
 }
+
+// Future backend responses include:
+// {
+//   currency: 'INR',
+//   currencySymbol: '₹',
+//   estimatedOvercharge: 1245
+// }
 
 /**
  * Make HTTP request to API

@@ -6,9 +6,11 @@
 
 export const billAnalysisMock = {
   analysisType: 'bill',
+  currency: 'INR',
+  currencySymbol: '₹',
   title: 'Hospital Billing Analysis',
   subtitle: 'Focused on overcharges, duplicates, and suspicious line items.',
-  summary: 'Your hospital bill contains 4 flagged items requiring attention. Estimated recoverable overcharge: $1,245+',
+  summary: 'Your hospital bill contains 4 flagged items requiring attention. Estimated recoverable overcharge: ₹1,245+',
   riskScore: 7.6,
   estimatedOvercharge: 1245,
   totalIssues: 12,
@@ -16,8 +18,8 @@ export const billAnalysisMock = {
     {
       id: 1,
       title: 'Room Charge',
-      amount: '$220',
-      expectedRange: '$110-$180',
+      amount: 220,
+      expectedRange: { min: 110, max: 180 },
       status: '⚠ Duplicate?',
       severity: 'high',
       confidence: 0.92,
@@ -26,8 +28,8 @@ export const billAnalysisMock = {
     {
       id: 2,
       title: 'Antibiotic (Ceftriaxone)',
-      amount: '$430',
-      expectedRange: '$30-$120',
+      amount: 430,
+      expectedRange: { min: 30, max: 120 },
       status: '⚠ Expensive',
       severity: 'high',
       confidence: 0.78,
@@ -36,8 +38,8 @@ export const billAnalysisMock = {
     {
       id: 3,
       title: 'MRI Scan',
-      amount: '$850',
-      expectedRange: '$600-$1,200',
+      amount: 850,
+      expectedRange: { min: 600, max: 1200 },
       status: '✓ Normal',
       severity: 'low',
       confidence: 0.95,
@@ -46,8 +48,8 @@ export const billAnalysisMock = {
     {
       id: 4,
       title: 'Facility Fee',
-      amount: '$150',
-      expectedRange: '$100-$150',
+      amount: 150,
+      expectedRange: { min: 100, max: 150 },
       status: '⚠ Duplicate?',
       severity: 'medium',
       confidence: 0.64,
@@ -94,6 +96,8 @@ export const billAnalysisMock = {
 
 export const reportAnalysisMock = {
   analysisType: 'report',
+  currency: 'UNKNOWN',
+  currencySymbol: '',
   title: 'Medical Report Analysis',
   subtitle: 'Focused on plain-language explanations and follow-up guidance.',
   summary: 'Your medical report shows mild inflammation responding well to treatment. Continue current medication and schedule follow-up.',
@@ -131,9 +135,11 @@ export const reportAnalysisMock = {
 
 export const crossVerificationMock = {
   analysisType: 'cross_verification',
+  currency: 'INR',
+  currencySymbol: '₹',
   title: 'Cross-Verification Analysis',
   subtitle: 'Your hospital bill and medical report are mostly aligned, but several billing inconsistencies were detected.',
-  summary: 'Bill and report align 84% overall. 4 procedures billed without clear clinical justification. Estimated overcharge: $1,245+',
+  summary: 'Bill and report align 84% overall. 4 procedures billed without clear clinical justification. Estimated overcharge: ₹1,245+',
   riskScore: 7.6,
   estimatedOvercharge: 1245,
   totalIssues: 12,
@@ -141,8 +147,8 @@ export const crossVerificationMock = {
     {
       id: 1,
       title: 'Room Charge',
-      amount: '$220',
-      expectedRange: '$110-$180',
+      amount: 220,
+      expectedRange: { min: 110, max: 180 },
       status: '⚠ Duplicate?',
       severity: 'high',
       confidence: 0.92,
@@ -151,8 +157,8 @@ export const crossVerificationMock = {
     {
       id: 2,
       title: 'Antibiotic (Ceftriaxone)',
-      amount: '$430',
-      expectedRange: '$30-$120',
+      amount: 430,
+      expectedRange: { min: 30, max: 120 },
       status: '⚠ Expensive',
       severity: 'high',
       confidence: 0.78,
@@ -161,8 +167,8 @@ export const crossVerificationMock = {
     {
       id: 3,
       title: 'MRI Scan',
-      amount: '$850',
-      expectedRange: '$600-$1,200',
+      amount: 850,
+      expectedRange: { min: 600, max: 1200 },
       status: '✓ Normal',
       severity: 'low',
       confidence: 0.95,
@@ -171,8 +177,8 @@ export const crossVerificationMock = {
     {
       id: 4,
       title: 'Facility Fee',
-      amount: '$150',
-      expectedRange: '$100-$150',
+      amount: 150,
+      expectedRange: { min: 100, max: 150 },
       status: '⚠ Duplicate?',
       severity: 'medium',
       confidence: 0.64,

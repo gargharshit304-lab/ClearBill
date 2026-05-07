@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2, TrendingDown, HelpCircle } from 'lucide-react'
+import { formatCurrency } from '../utils/formatCurrency'
 
 export default function DemoPreview() {
+  const currencySymbol = '₹'
   const containerVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: {
@@ -37,7 +39,7 @@ export default function DemoPreview() {
           {/* Dashboard Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-8 border-b border-gray-200">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">St. Mary's Hospital Bill</h3>
+              <h3 className="text-2xl font-bold text-gray-900">HealthCity Hospital Bill</h3>
               <p className="text-gray-600">Analysis completed on May 7, 2026</p>
             </div>
             <motion.button
@@ -89,7 +91,7 @@ export default function DemoPreview() {
                 animate={{ y: [0, -5, 0] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                $1,245
+                {formatCurrency(1245, currencySymbol)}
               </motion.div>
               <p className="text-sm text-gray-600 mt-2">Est. Potential Savings</p>
             </motion.div>
@@ -133,19 +135,19 @@ export default function DemoPreview() {
               {[
                 {
                   title: 'Duplicate Ultrasound Charge',
-                  amount: '$450',
+                  amount: 450,
                   description: 'Billed twice on different dates for same procedure',
                   severity: 'high',
                 },
                 {
                   title: 'Inflated Medication Cost',
-                  amount: '$320',
+                  amount: 320,
                   description: 'MRI scan cost 40% above market average',
                   severity: 'medium',
                 },
                 {
                   title: 'Unclear Facility Fee',
-                  amount: '$500',
+                  amount: 500,
                   description: 'No itemization provided for facility charge',
                   severity: 'medium',
                 },
@@ -167,7 +169,7 @@ export default function DemoPreview() {
                       <p className="text-sm text-gray-600 mt-1">{flag.description}</p>
                     </div>
                     <span className="text-lg font-bold text-red-600 whitespace-nowrap ml-4">
-                      {flag.amount}
+                      {formatCurrency(flag.amount, currencySymbol)}
                     </span>
                   </div>
                 </motion.div>
@@ -184,7 +186,7 @@ export default function DemoPreview() {
             <ul className="space-y-2 text-sm text-gray-700">
               {[
                 'Why are there two ultrasound charges on May 2nd?',
-                'Can you itemize what is included in the $500 facility fee?',
+                `Can you itemize what is included in the ${formatCurrency(500, currencySymbol)} facility fee?`,
                 'How does the MRI cost compare to your standard rate?',
               ].map((question, i) => (
                 <motion.li

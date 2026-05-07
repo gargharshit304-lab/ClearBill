@@ -301,6 +301,20 @@ All layers are independently testable:
 
 ## Future Roadmap
 
+### Currency Preservation
+
+Backend OCR processing should run `backend/utils/currencyDetector.py` immediately after text extraction. The detected metadata must be attached to every analysis response:
+
+```json
+{
+  "currency": "INR",
+  "currencySymbol": "₹",
+  "estimatedOvercharge": 1245
+}
+```
+
+The AI prompt must instruct Claude/OpenRouter to preserve the detected billing currency and never convert or mix currencies. Frontend money rendering should use `currencySymbol + amount` through `src/utils/currency.js`.
+
 Phase 3 (Backend Integration):
 1. Implement FastAPI server
 2. Configure OpenRouter Claude API
