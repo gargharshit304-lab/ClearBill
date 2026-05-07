@@ -645,205 +645,312 @@ function ContinueUploadPrompt({ missingType, onUpload, onStart }) {
   )
 }
 
+// Compact Report Summary Tab
+function ReportSummaryTab() {
+  const [expanded, setExpanded] = useState(null)
+  const items = [
+    { id: 'diagnosis', label: 'Diagnosis', detail: 'Chest X-ray showed mild inflammation, no serious abnormality.', content: 'The imaging suggests localized inflammation consistent with mild infection. No consolidation or effusion was seen. Recommended: monitoring and symptomatic treatment.' },
+    { id: 'treatment', label: 'Treatment Provided', detail: 'Standard antibiotic treatment with clinical monitoring.', content: 'Treatment included medication to reduce inflammation and observation. No invasive procedures necessary. Suggested follow-up in 7-14 days.' },
+    { id: 'observations', label: 'Lab Results & Notes', detail: 'Lab markers trending down. Oxygen saturation normal.', content: 'All clinical markers align with expected recovery trajectory. No immediate interventions required beyond current medication.' },
+  ]
+  return (
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div key={item.id} className="border border-slate-200 rounded-lg overflow-hidden">
+          <button onClick={() => setExpanded(expanded === item.id ? null : item.id)} className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-slate-900 text-sm">{item.label}</p>
+              <p className="text-xs text-slate-600 mt-0.5">{item.detail}</p>
+            </div>
+            <div className={`text-slate-400 transition-transform ${expanded === item.id ? 'rotate-180' : ''}`}>▼</div>
+          </button>
+          <AnimatePresence>
+            {expanded === item.id && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-4 py-3 bg-slate-50 border-t text-sm text-slate-700">
+                {item.content}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Compact Billing Issues Tab
+function BillingIssuesTab() {
+  const [expanded, setExpanded] = useState(null)
+  const rows = [
+    { id: 1, item: 'Room Charge', amount: '$220', expected: '$110-$180', status: '⚠ Duplicate?', severity: 'high', confidence: 0.92, suggestion: 'Ask for admission/discharge timeline.' },
+    { id: 2, item: 'Antibiotic (Ceftriaxone)', amount: '$430', expected: '$30-$120', status: '⚠ Expensive', severity: 'high', confidence: 0.78, suggestion: 'Request pharmacy invoice and dosage confirmation.' },
+    { id: 3, item: 'MRI Scan', amount: '$850', expected: '$600-$1,200', status: '✓ Normal', severity: 'low', confidence: 0.95, suggestion: 'Verified – no concerns.' },
+    { id: 4, item: 'Facility Fee', amount: '$150', expected: '$100-$150', status: '⚠ Duplicate?', severity: 'medium', confidence: 0.64, suggestion: 'Clarify which event(s) triggered fee.' },
+  ]
+  return (
+    <div className="space-y-2">
+      {rows.map((r) => (
+        <div key={r.id} className="border border-slate-200 rounded-lg">
+          <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between">
+            <div className="flex-1">
+              <p className="font-semibold text-slate-900 text-sm">{r.item}</p>
+              <p className="text-xs text-slate-600 mt-0.5">{r.amount} (expected: {r.expected})</p>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${r.severity === 'high' ? 'bg-red-50 text-red-700' : r.severity === 'medium' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>{r.status}</span>
+              <div className={`text-slate-400 transition-transform ${expanded === r.id ? 'rotate-180' : ''}`}>▼</div>
+            </div>
+          </button>
+          <AnimatePresence>
+            {expanded === r.id && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="px-4 py-3 bg-slate-50 border-t">
+                <p className="text-xs text-slate-600 mb-2">{r.suggestion}</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className={`h-full ${r.confidence > 0.8 ? 'bg-emerald-500' : r.confidence > 0.6 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.round(r.confidence * 100)}%` }} />
+                  </div>
+                  <span className="text-xs text-slate-600">{Math.round(r.confidence * 100)}% confident</span>
+                </div>
+                <button className="text-xs bg-sky-600 text-white px-3 py-1 rounded hover:bg-sky-700">Copy question</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ))}
+      <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100">
+        <p className="text-xs font-semibold text-amber-900">Estimated Overcharge</p>
+        <p className="text-lg font-bold text-amber-900 mt-1">$1,245+</p>
+      </div>
+    </div>
+  )
+}
+
+// Compact Cross-Check Tab
+function CrossCheckTab() {
+  const items = [
+    { name: 'MRI Scan', status: 'match', note: 'Mentioned in both', pct: 98 },
+    { name: 'Nebulization', status: 'mismatch', note: 'Billed but unclear', pct: 42 },
+    { name: 'Physician Note', status: 'match', note: 'Provider in both', pct: 88 },
+    { name: 'Facility Fee', status: 'mismatch', note: 'Possible duplicate', pct: 54 },
+  ]
+  return (
+    <div className="space-y-3">
+      {items.map((it) => (
+        <div key={it.name} className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg">
+          <div className={`h-2 w-2 mt-1.5 rounded-full flex-shrink-0 ${it.status === 'match' ? 'bg-emerald-500' : 'bg-orange-500'}`} />
+          <div className="flex-1">
+            <p className="font-semibold text-slate-900 text-sm">{it.name}</p>
+            <p className="text-xs text-slate-600 mt-0.5">{it.note}</p>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className={`h-full ${it.pct > 85 ? 'bg-emerald-500' : it.pct > 60 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${it.pct}%` }} />
+              </div>
+              <span className="text-xs text-slate-600 min-w-fit">{it.pct}%</span>
+            </div>
+          </div>
+        </div>
+      ))}
+      <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+        <p className="text-xs font-semibold text-slate-600">Overall Alignment</p>
+        <div className="mt-2 flex items-center gap-3">
+          <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500" style={{ width: '84%' }} />
+          </div>
+          <span className="text-lg font-bold text-slate-900 min-w-fit">84%</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Compact Questions Tab
+function QuestionsTab() {
+  const questions = [
+    { q: 'Why was room charge billed twice?', priority: 'High', explanation: 'Ask for timeline showing two separate room usages.' },
+    { q: 'Can I see the pharmacy invoice?', priority: 'High', explanation: 'Need unit price and quantity for the antibiotic charge.' },
+    { q: 'Which clinical note references the MRI?', priority: 'High', explanation: 'Procedure notes confirm medical necessity.' },
+    { q: 'Was facility fee charged twice?', priority: 'Medium', explanation: 'Clarify if fee applies at admission and/or discharge.' },
+  ]
+  return (
+    <div className="space-y-2">
+      {questions.map((q, i) => (
+        <div key={i} className="p-3 border border-slate-200 rounded-lg">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <p className="font-semibold text-slate-900 text-sm">{q.q}</p>
+              <p className="text-xs text-slate-600 mt-1">{q.explanation}</p>
+            </div>
+            <button onClick={() => navigator.clipboard?.writeText(q.q)} className={`text-xs font-semibold px-2 py-1 rounded flex-shrink-0 ${q.priority === 'High' ? 'bg-red-50 text-red-700 hover:bg-red-100' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>Copy</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function ResultsScreen({ profile, billFile, reportFile, onReset, onContinueUpload }) {
+  const [activeTab, setActiveTab] = useState('overview')
   const confidenceData = { analysis: 91, medical: 89, billing: 78, crossVerif: 84 }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-      {/* HEADER */}
-      <div className="mx-auto max-w-5xl text-center">
-        <motion.div
-          initial={{ scale: 0.75, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 180, damping: 14 }}
-          className="mx-auto inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[0_0_50px_rgba(16,185,129,0.4)]"
-        >
-          <CheckCircle2 size={40} />
-        </motion.div>
-        <p className="mt-6 text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">
-          Analysis Complete
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
-          {profile.title}
-        </h1>
-        <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-600">
-          {profile.subtitle}
-        </p>
+    <div className="min-h-screen bg-white text-slate-900">
+      {/* TOP HEADER - Compact Summary */}
+      <div className="border-b border-slate-200 bg-slate-50 px-4 py-4 md:px-8 md:py-5">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">Analysis Complete</p>
+              <h1 className="mt-1 text-2xl font-bold text-slate-900">{profile.title}</h1>
+            </div>
+            <motion.button onClick={onReset} whileHover={{ scale: 1.02 }} className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-100">New Analysis</motion.button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <div className="p-3 bg-white rounded border border-slate-200">
+              <p className="text-xs text-slate-600 font-semibold">Risk Score</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">7.6<span className="text-xs text-slate-600 font-normal">/10</span></p>
+            </div>
+            <div className="p-3 bg-white rounded border border-slate-200">
+              <p className="text-xs text-slate-600 font-semibold">Est. Overcharge</p>
+              <p className="text-2xl font-bold text-amber-700 mt-1">$1,245+</p>
+            </div>
+            <div className="p-3 bg-white rounded border border-slate-200">
+              <p className="text-xs text-slate-600 font-semibold">Issues Found</p>
+              <p className="text-2xl font-bold text-slate-900 mt-1">12</p>
+            </div>
+            <div className="p-3 bg-white rounded border border-slate-200">
+              <p className="text-xs text-slate-600 font-semibold">Action Summary</p>
+              <p className="text-sm font-semibold text-slate-900 mt-1">Review & follow up</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* MAIN GRID */}
-      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[1fr_280px]">
-        {/* LEFT: Narrative Flow */}
-        <div className="space-y-6">
-          {/* If only one document was analyzed, show the relevant analysis first and a ContinueUploadPrompt */}
-          {billFile && !reportFile && (
-            <>
-              <BillingConcernsCard profile={profile} />
-              <NextStepsCard />
-              <QuestionsCard />
-              <div>
-                <ContinueUploadPrompt
-                  missingType="report"
-                  onUpload={(file) => onContinueUpload(file, 'report')}
-                  onStart={(file) => onContinueUpload(file, 'report')}
-                />
-              </div>
-            </>
-          )}
-
-          {reportFile && !billFile && (
-            <>
-              <ReportSummaryCard profile={profile} />
-              <NextStepsCard />
-              <QuestionsCard />
-              <div className="mt-2">
-                <ContinueUploadPrompt
-                  missingType="bill"
-                  onUpload={(file) => onContinueUpload(file, 'bill')}
-                  onStart={(file) => onContinueUpload(file, 'bill')}
-                />
-              </div>
-            </>
-          )}
-
-          {billFile && reportFile && (
-            <>
-              <ReportSummaryCard profile={profile} />
-              <BillingConcernsCard profile={profile} />
-              <CrossVerificationCard profile={profile} />
-              <NextStepsCard />
-              <QuestionsCard />
-            </>
-          )}
+      {/* TAB NAVIGATION */}
+      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 md:px-8 overflow-x-auto">
+        <div className="mx-auto max-w-7xl flex gap-1">
+          <button onClick={() => setActiveTab('overview')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'overview' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>Overview</button>
+          {billFile && <button onClick={() => setActiveTab('bill')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'bill' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>Bill Issues</button>}
+          {reportFile && <button onClick={() => setActiveTab('report')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'report' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>Report Summary</button>}
+          {billFile && reportFile && <button onClick={() => setActiveTab('cross')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'cross' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>Cross-Check</button>}
+          <button onClick={() => setActiveTab('questions')} className={`px-4 py-3 text-sm font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'questions' ? 'border-sky-600 text-sky-700' : 'border-transparent text-slate-600 hover:text-slate-900'}`}>Questions</button>
         </div>
+      </div>
 
-        {/* RIGHT: AI Confidence Panel */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="sticky top-8 space-y-3"
-        >
-          <motion.div
-            className="rounded-[24px] border border-white/70 bg-gradient-to-br from-white/95 to-white/90 p-5 shadow-[0_16px_60px_rgba(15,127,255,0.10)] backdrop-blur-lg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">Analysis Overview</p>
-
-            <div className="mt-4 space-y-4">
-              <div className="flex items-center gap-3 rounded-xl bg-gradient-to-br from-red-50 to-orange-50 p-3">
-                <div className="relative flex h-14 w-14 items-center justify-center flex-shrink-0">
-                  <svg className="h-14 w-14" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" strokeWidth="3" />
-                    <motion.circle
-                      cx="50"
-                      cy="50"
-                      r="45"
-                      fill="none"
-                      stroke="url(#riskGrad)"
-                      strokeWidth="3"
-                      strokeDasharray="283"
-                      strokeDashoffset="283"
-                      animate={{ strokeDashoffset: 283 - (7.6 / 10) * 283 }}
-                      transition={{ duration: 1, delay: 0.5 }}
-                      strokeLinecap="round"
-                    />
-                    <defs>
-                      <linearGradient id="riskGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#f97316" />
-                        <stop offset="100%" stopColor="#dc2626" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <div className="absolute text-center">
-                    <p className="text-sm font-bold text-slate-900">7.6</p>
-                    <p className="text-xs text-slate-600">/10</p>
+      {/* MAIN CONTENT */}
+      <div className="px-4 py-6 md:px-8 md:py-8">
+        <div className="mx-auto max-w-7xl grid gap-6 lg:grid-cols-[1fr_320px]">
+          {/* LEFT: Tab Content */}
+          <div>
+            <AnimatePresence mode="wait">
+              {activeTab === 'overview' && (
+                <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <p className="font-semibold text-slate-900">Analysis Summary</p>
+                      <p className="text-sm text-slate-700 mt-2">{profile.subtitle}</p>
+                    </div>
+                    {billFile && reportFile ? (
+                      <>
+                        <h2 className="font-semibold text-slate-900">Key Findings</h2>
+                        <ul className="space-y-2 text-sm text-slate-700">
+                          <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold mt-0.5">✓</span> Medical findings documented and explained</li>
+                          <li className="flex items-start gap-2"><span className="text-red-600 font-bold mt-0.5">!</span> 4 billing items flagged for review</li>
+                          <li className="flex items-start gap-2"><span className="text-yellow-600 font-bold mt-0.5">!</span> 1 procedure lacks clinical reference</li>
+                          <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold mt-0.5">✓</span> 84% overall document alignment</li>
+                        </ul>
+                      </>
+                    ) : billFile ? (
+                      <>
+                        <h2 className="font-semibold text-slate-900">Bill Analysis</h2>
+                        <p className="text-sm text-slate-700">Hospital bill analyzed for pricing anomalies and duplicate charges.</p>
+                        <p className="text-sm text-amber-700 font-semibold mt-2">Upload a medical report for deeper cross-verification insights.</p>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="font-semibold text-slate-900">Report Analysis</h2>
+                        <p className="text-sm text-slate-700">Medical report analyzed and explained in plain language.</p>
+                        <p className="text-sm text-amber-700 font-semibold mt-2">Upload a hospital bill to compare medical services with charges.</p>
+                      </>
+                    )}
                   </div>
+                </motion.div>
+              )}
+              {activeTab === 'bill' && billFile && (
+                <motion.div key="bill" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+                  <BillingIssuesTab />
+                </motion.div>
+              )}
+              {activeTab === 'report' && reportFile && (
+                <motion.div key="report" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+                  <ReportSummaryTab />
+                </motion.div>
+              )}
+              {activeTab === 'cross' && billFile && reportFile && (
+                <motion.div key="cross" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+                  <CrossCheckTab />
+                </motion.div>
+              )}
+              {activeTab === 'questions' && (
+                <motion.div key="questions" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
+                  <QuestionsTab />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* RIGHT: Sticky Sidebar */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sticky top-24 h-fit space-y-3">
+            <div className="p-4 border border-slate-200 rounded-lg">
+              <p className="text-xs font-semibold uppercase text-slate-600 mb-3">Risk Level</p>
+              <div className="flex items-end gap-3">
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  <svg className="absolute" viewBox="0 0 100 100" style={{ width: 64, height: 64 }}>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" strokeWidth="6" />
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#dc2626" strokeWidth="6" strokeDasharray={`${(7.6 / 10) * 283} 283`} strokeLinecap="round" transform="rotate(-90 50 50)" />
+                  </svg>
+                  <span className="font-bold text-slate-900">7.6</span>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-600">Risk Score</p>
-                  <p className="mt-0.5 text-sm font-semibold text-slate-900">Moderate</p>
+                  <p className="font-semibold text-slate-900">Moderate</p>
                   <p className="text-xs text-slate-600">Review recommended</p>
                 </div>
               </div>
-
-              <div className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-600">Analysis Confidence</span>
-                    <span className="font-semibold text-slate-900">{confidenceData.analysis}%</span>
-                  </div>
-                  <div className="mt-1 h-1.5 rounded-full bg-slate-200">
-                    <motion.div className="h-full rounded-full bg-emerald-500" initial={{ width: 0 }} animate={{ width: `${confidenceData.analysis}%` }} transition={{ duration: 0.8 }} />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-600">Medical Summary</span>
-                    <span className="font-semibold text-slate-900">High</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-600">Billing Analysis</span>
-                    <span className="font-semibold text-slate-900">{confidenceData.billing}%</span>
-                  </div>
-                  <div className="mt-1 h-1.5 rounded-full bg-slate-200">
-                    <motion.div className="h-full rounded-full bg-amber-500" initial={{ width: 0 }} animate={{ width: `${confidenceData.billing}%` }} transition={{ duration: 0.8 }} />
-                  </div>
-                </div>
-
-                {billFile && reportFile && (
-                  <div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-600">Cross-Verification</span>
-                      <span className="font-semibold text-slate-900">{confidenceData.crossVerif}%</span>
-                    </div>
-                    <div className="mt-1 h-1.5 rounded-full bg-slate-200">
-                      <motion.div className="h-full rounded-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${confidenceData.crossVerif}%` }} transition={{ duration: 0.8 }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded-xl border border-amber-200/60 bg-amber-50/70 p-3">
-                <p className="text-xs font-semibold text-amber-700">Est. Overcharge</p>
-                <p className="mt-1.5 text-xl font-bold text-amber-700">$1,245</p>
-                <p className="text-xs text-amber-600">If all flagged items resolved</p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200/60 bg-slate-50/70 p-3">
-                <p className="text-xs font-semibold text-slate-600">Issues Found</p>
-                <p className="mt-1.5 text-xl font-bold text-slate-900">12</p>
-                <p className="text-xs text-slate-600">Requiring attention</p>
-              </div>
-
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50 px-3 py-2 text-xs font-semibold text-sky-700 transition hover:border-sky-300">
-                <Download size={14} className="mb-0.5 mr-1 inline" />
-                Download Report
-              </motion.button>
             </div>
-          </motion.div>
-        </motion.div>
-      </div>
 
-      {/* FOOTER: Call to Action */}
-      <div className="mx-auto flex max-w-6xl justify-center pt-4">
-        <motion.button
-          type="button"
-          onClick={onReset}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-          className="rounded-full border border-slate-200 bg-white px-8 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50"
-        >
-          <ArrowRight size={16} className="mb-0.5 mr-2 inline" />
-          Analyze Another Session
-        </motion.button>
+            <div className="p-4 border border-slate-200 rounded-lg space-y-3">
+              <p className="text-xs font-semibold uppercase text-slate-600">Confidence</p>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-slate-600">Analysis</span>
+                  <span className="text-xs font-bold text-slate-900">91%</span>
+                </div>
+                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-emerald-500" style={{ width: '91%' }} /></div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-slate-600">Billing</span>
+                  <span className="text-xs font-bold text-slate-900">78%</span>
+                </div>
+                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-amber-500" style={{ width: '78%' }} /></div>
+              </div>
+              {billFile && reportFile && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-slate-600">Match</span>
+                    <span className="text-xs font-bold text-slate-900">84%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-blue-500" style={{ width: '84%' }} /></div>
+                </div>
+              )}
+            </div>
+
+            <button className="w-full px-4 py-2 bg-sky-600 text-white font-semibold rounded-lg text-sm hover:bg-sky-700 transition">
+              <Download size={16} className="inline mr-2 mb-0.5" />
+              Download Report
+            </button>
+          </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
